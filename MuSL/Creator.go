@@ -3,7 +3,7 @@ package MuSL
 type Song struct {
 	id      int
 	genre   []float64
-	creator int
+	creator *Agent
 }
 
 type Creator struct {
