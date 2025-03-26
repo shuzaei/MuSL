@@ -13,6 +13,6 @@ type Creator struct {
 	creation_cost        const64
 }
 
-func (c *Creator) Create(agent *[]*Agent) {
+func (c *Creator) Create(agents *[]*Agent) {
 	// あとで実装
 }

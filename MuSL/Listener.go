@@ -8,6 +8,6 @@ type Listener struct {
 	evaluation_cost       const64
 }
 
-func (l *Listener) Listen(agent *[]*Agent) {
+func (l *Listener) Listen(agents *[]*Agent) {
 	// あとで実装
 }
