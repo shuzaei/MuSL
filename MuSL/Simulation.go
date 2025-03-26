@@ -20,7 +20,7 @@ func MakeNewSimulation(n_agents, n_iter int, ga_params *GAParams, default_agent_
 	// エージェントを作成
 	agents := make([]*Agent, n_agents)
 	for i := 0; i < n_agents; i++ {
-		agents[i] = MakeRandomAgentFromParams(i, default_agent_params)
+		agents[i] = MakeRandomAgentFromParams(GetNewID(), default_agent_params)
 	}
 
 	sim.history[0] = agents

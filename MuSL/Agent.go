@@ -7,6 +7,15 @@ import (
 
 type const64 float64 // 実験時に確定する定数
 
+// エージェントの ID を管理するためのグローバル変数
+// リエントラントかどうかは気にしない
+var global_id_counter int = 0
+
+func GetNewID() int {
+	global_id_counter++
+	return global_id_counter
+}
+
 type Agent struct {
 	id                       int
 	role                     []bool // [creator, listener, organizer]
@@ -38,6 +47,7 @@ func MakeNewAgent(
 	novelty_preference float64, // ----- Gene
 	memory_l []*Song, //---------------- 動的に変化
 	incoming_songs []*Song, // --------- 動的に変化
+	song_events []*Event, // ----------- 動的に変化
 	listening_probability float64, // -- Gene
 	evaluation_cost const64, // -------- 実験定数
 
@@ -47,6 +57,20 @@ func MakeNewAgent(
 	event_probability float64, // ------ Gene
 	organization_cost const64, // ------ 実験定数
 	organization_reward const64, // ---- 実験定数
+
+	// イベント生成用のパラメータ
+	// メジャーイベント
+	major_listener_ratio const64, // --- 実験定数
+	major_creator_ratio const64, // ---- 実験定数
+	major_song_ratio const64, // ------- 実験定数
+	major_winner_ratio const64, // ----- 実験定数
+	major_reward_ratio const64, // ----- 実験定数
+
+	// マイナーイベント
+	minor_listener_ratio const64, // --- 実験定数
+	minor_creator_ratio const64, // ---- 実験定数
+	minor_song_ratio const64, // ------- 実験定数
+	minor_reward_ratio const64, // ----- 実験定数
 ) *Agent {
 	return &Agent{
 		id:                       id,
@@ -56,8 +80,11 @@ func MakeNewAgent(
 		elimination_threshold:    elimination_threshold,
 		reproduction_probability: reproduction_probability,
 		creator:                  &Creator{innovation_rate, memory_c, creation_probability, creation_cost},
-		listener:                 &Listener{novelty_preference, memory_l, incoming_songs, listening_probability, evaluation_cost},
-		organizer:                &Organizer{major_probability, created_events, event_probability, organization_cost, organization_reward},
+		listener:                 &Listener{novelty_preference, memory_l, incoming_songs, song_events, listening_probability, evaluation_cost},
+		organizer: &Organizer{major_probability, created_events, event_probability, organization_cost, organization_reward,
+			major_listener_ratio, major_creator_ratio, major_song_ratio, major_winner_ratio, major_reward_ratio,
+			minor_listener_ratio, minor_creator_ratio, minor_song_ratio, minor_reward_ratio,
+		},
 	}
 }
 
@@ -80,6 +107,7 @@ func CopyAgent(a *Agent) *Agent {
 		a.listener.novelty_preference,
 		a.listener.memory,
 		a.listener.incoming_songs,
+		a.listener.song_events,
 		a.listener.listening_probability,
 		a.listener.evaluation_cost,
 
@@ -89,6 +117,20 @@ func CopyAgent(a *Agent) *Agent {
 		a.organizer.event_probability,
 		a.organizer.organization_cost,
 		a.organizer.organization_reward,
+
+		// イベント生成用のパラメータ
+		// メジャーイベント
+		a.organizer.major_listener_ratio,
+		a.organizer.major_creator_ratio,
+		a.organizer.major_song_ratio,
+		a.organizer.major_winner_ratio,
+		a.organizer.major_reward_ratio,
+
+		// マイナーイベント
+		a.organizer.minor_listener_ratio,
+		a.organizer.minor_creator_ratio,
+		a.organizer.minor_song_ratio,
+		a.organizer.minor_reward_ratio,
 	)
 }
 
@@ -120,6 +162,7 @@ func MakeRandomAgentFromParams(
 		rand.Float64(),
 		make([]*Song, 0),
 		make([]*Song, 0),
+		make([]*Event, 0),
 		rand.Float64(),
 		default_params.listener.evaluation_cost,
 
@@ -129,6 +172,20 @@ func MakeRandomAgentFromParams(
 		rand.Float64(),
 		default_params.organizer.organization_cost,
 		default_params.organizer.organization_reward,
+
+		// イベント生成用のパラメータ
+		// メジャーイベント
+		default_params.organizer.major_listener_ratio,
+		default_params.organizer.major_creator_ratio,
+		default_params.organizer.major_song_ratio,
+		default_params.organizer.major_winner_ratio,
+		default_params.organizer.major_reward_ratio,
+
+		// マイナーイベント
+		default_params.organizer.minor_listener_ratio,
+		default_params.organizer.minor_creator_ratio,
+		default_params.organizer.minor_song_ratio,
+		default_params.organizer.minor_reward_ratio,
 	)
 }
 
@@ -136,17 +193,17 @@ func (a *Agent) Run(agents *[]*Agent, gaParams *GAParams, default_agent_params *
 
 	// リスナー
 	if a.role[1] {
-		a.listener.Listen(agents)
+		a.listener.Listen(agents, a)
 	}
 
 	// クリエイター
 	if a.role[0] {
-		a.creator.Create(agents)
+		a.creator.Create(agents, a)
 	}
 
 	// オーガナイザー
 	if a.role[2] {
-		a.organizer.Organize(agents)
+		a.organizer.Organize(agents, a)
 	}
 
 	// 再生産
@@ -175,6 +232,7 @@ func (a *Agent) Reproduce(agents *[]*Agent, gaParams *GAParams, default_agent_pa
 		spouse := spouse_candidates[rand.IntN(len(spouse_candidates))]
 		child, err := ReproduceGA(a, spouse, gaParams, default_agent_params, CopyAgent)
 		if err == nil {
+			child.id = GetNewID()
 			*agents = append(*agents, child)
 		}
 

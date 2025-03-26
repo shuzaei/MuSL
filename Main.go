@@ -30,11 +30,12 @@ func main() {
 		0.5,                   // [*] creation_cost
 
 		// listener
-		0.5,                   //     novelty_preference
-		make([]*MuSL.Song, 0), //     memory
-		make([]*MuSL.Song, 0), //     incoming_songs
-		0.5,                   //     listening_probability
-		0.5,                   // [*] evaluation_cost
+		0.5,                    //     novelty_preference
+		make([]*MuSL.Song, 0),  //     memory
+		make([]*MuSL.Song, 0),  //     incoming_songs
+		make([]*MuSL.Event, 0), //     song_events
+		0.5,                    //     listening_probability
+		0.5,                    // [*] evaluation_cost
 
 		// organizer
 		0.5,                    // [*] major_probability
@@ -42,6 +43,20 @@ func main() {
 		0.5,                    //     event_probability
 		0.5,                    // [*] organization_cost
 		0.5,                    // [*] organization_reward
+
+		// イベント生成用のパラメータ
+		// メジャーイベント
+		0.5, // [*] major_listener_ratio
+		0.5, // [*] major_creator_ratio
+		0.1, // [*] major_song_ratio
+		0.5, // [*] major_winner_ratio
+		0.5, // [*] major_reward_ratio
+
+		// マイナーイベント
+		0.1, // [*] minor_listener_ratio
+		0.1, // [*] minor_creator_ratio
+		0.5, // [*] minor_song_ratio
+		0.5, // [*] minor_reward_ratio
 	)
 
 	sim := MuSL.MakeNewSimulation(n_agents, n_iter, ga_params, default_agent_params)
