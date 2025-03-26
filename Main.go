@@ -62,7 +62,5 @@ func main() {
 	sim := MuSL.MakeNewSimulation(n_agents, n_iter, ga_params, default_agent_params)
 	sim.Run()
 
-	result := sim.GetResult()
-	// result を使って何かしたいが、まだ出力用 public method がないので、とりあえずアドレスを出力
-	fmt.Println(result)
+	fmt.Println(sim.GetResult())
 }

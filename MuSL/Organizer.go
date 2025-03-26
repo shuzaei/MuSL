@@ -92,22 +92,21 @@ func (o *Organizer) Organize(agents *[]*Agent, me *Agent) {
 				song.creator.energy += each_reward
 			}
 		} else {
-
 			// マイナーイベント
 			// マイナーイベントでは、最初に一定割合の報酬を還元
 			reward_sum := 0.0
 
 			for song, reward := range event.evaluation_reward {
+				// 中抜き
+				fee := reward * float64(o.organization_reward)
+				reward -= fee
+				me.energy += reward
+
 				// 一定割合を還元
 				reward_return := reward * float64(o.minor_reward_ratio)
 				song.creator.energy += reward_return
 				reward_sum += reward - reward_return
 			}
-
-			// 続いて中抜きを行う
-			fee := reward_sum * float64(o.organization_reward)
-			reward_sum -= fee
-			me.energy += reward_sum
 
 			// 全ての曲に報酬を与える
 			each_reward := reward_sum / float64(len(event.evaluation_reward))
