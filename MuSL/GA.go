@@ -5,10 +5,9 @@ import (
 	"math/rand/v2"
 )
 
-// 遺伝子型。Creator, Listener, Organizer, Agent がこれを実装する。
-// Agent は特殊で、自身の遺伝子に加えて Creator, Listener, Organizer の遺伝子もつなげたものになる。
+// 遺伝子型。Agent 固有の遺伝子に加えて Creator, Listener, Organizer の遺伝子もつなげたものになる。
 // 役割は各役割のオンオフを 0.0 / 1.0 に変換し、帰ってきた値が 0.5 以上ならその役割を持つと判断する。
-// 役割がないと何もしなくて問題なので、その場合は失敗としてエラーを返す。
+// 役割がないと何もしなくて問題なので、その場合は失敗としてエラーを返す。（というのを Agent.go で実装している）
 
 type Evolvable interface {
 	ToGene() []float64
