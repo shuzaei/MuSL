@@ -10,6 +10,8 @@
   - 過去に聴いた楽曲のリスト。評価時に参照される。
 - `incoming_songs`: List[Song]
   - イベントでアサインされた楽曲のリスト。以下の確率で聴くことになる。
+- `song_events`: List[SongEvent]
+  - その楽曲がどのイベントでアサインされたかを記録するリスト。
 - `listening_probability`: float (0.0〜1.0)
   - 各イテレーションで与えられた楽曲を聴く確率。
 - `evaluation_cost`: float

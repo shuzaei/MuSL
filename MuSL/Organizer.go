@@ -116,6 +116,9 @@ func (o *Organizer) Organize(agents *[]*Agent, me *Agent) {
 		}
 	}
 
+	// イベントをすべて削除
+	o.created_events = make([]*Event, 0)
+
 	if rand.Float64() < o.event_probability {
 		// イベントを生成
 		event_type := ""

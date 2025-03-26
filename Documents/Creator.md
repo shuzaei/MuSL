@@ -5,11 +5,9 @@
 
 ## 属性
 
-- `id`: int
-  - 曲の ID。
 - `genre`: [2]float
   - 曲のジャンル。
-- `creator`: Creator
+- `creator`: Agent
   - 曲を生成したエージェント。
 
 ## 概要

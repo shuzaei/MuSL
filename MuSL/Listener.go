@@ -49,4 +49,8 @@ func (l *Listener) Listen(agents *[]*Agent, me *Agent) {
 			me.energy -= float64(l.evaluation_cost)
 		}
 	}
+
+	// 全曲を聴いたら初期化
+	l.incoming_songs = []*Song{}
+	l.song_events = []*Event{}
 }
