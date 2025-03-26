@@ -17,3 +17,7 @@ type Organizer struct {
 	organization_cost   const64
 	organization_reward const64
 }
+
+func (o *Organizer) Organize(agent *[]*Agent) {
+	// あとで実装
+}

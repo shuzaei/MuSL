@@ -42,7 +42,7 @@ func (s *Simulation) Run() {
 
 		// エージェントを実行
 		for _, agent := range agents {
-			agent.Run(agents, s.ga_params, s.default_agent_params)
+			agent.Run(&agents, s.ga_params, s.default_agent_params)
 		}
 
 		// エージェントを保存

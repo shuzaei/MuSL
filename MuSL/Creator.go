@@ -12,3 +12,7 @@ type Creator struct {
 	creation_probability float64
 	creation_cost        const64
 }
+
+func (c *Creator) Create(agent *[]*Agent) {
+	// あとで実装
+}

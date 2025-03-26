@@ -1,6 +1,9 @@
 package MuSL
 
-import "math/rand/v2"
+import (
+	"math/rand/v2"
+	"strconv"
+)
 
 type const64 float64 // 実験時に確定する定数
 
@@ -129,7 +132,7 @@ func MakeRandomAgentFromParams(
 	)
 }
 
-func (a *Agent) Run(agents []*Agent, gaParams *GAParams, default_agent_params *Agent) {
+func (a *Agent) Run(agents *[]*Agent, gaParams *GAParams, default_agent_params *Agent) {
 
 	// リスナー
 	if a.role[1] {
@@ -150,7 +153,7 @@ func (a *Agent) Run(agents []*Agent, gaParams *GAParams, default_agent_params *A
 	a.Reproduce(agents, gaParams, default_agent_params)
 }
 
-func (a *Agent) Reproduce(agents []*Agent, gaParams *GAParams, default_agent_params *Agent) {
+func (a *Agent) Reproduce(agents *[]*Agent, gaParams *GAParams, default_agent_params *Agent) {
 	// もしエネルギーが default_energy/2 以上なら、reproduction_probability の確率で子供を作る
 	if a.energy < float64(a.default_energy)/2 {
 		return
@@ -159,7 +162,7 @@ func (a *Agent) Reproduce(agents []*Agent, gaParams *GAParams, default_agent_par
 	if rand.Float64() < a.reproduction_probability {
 		// default_energy/2 以上の agent を探してランダムに選ぶ
 		spouse_candidates := make([]*Agent, 0)
-		for _, agent := range agents {
+		for _, agent := range *agents {
 			if agent.energy >= float64(a.default_energy)/2 {
 				spouse_candidates = append(spouse_candidates, agent)
 			}
@@ -172,7 +175,7 @@ func (a *Agent) Reproduce(agents []*Agent, gaParams *GAParams, default_agent_par
 		spouse := spouse_candidates[rand.IntN(len(spouse_candidates))]
 		child, err := ReproduceGA(a, spouse, gaParams, default_agent_params, CopyAgent)
 		if err == nil {
-			agents = append(agents, child)
+			*agents = append(*agents, child)
 		}
 
 		// たまに失敗することもあるが、失敗してもエネルギーは減らす
@@ -261,7 +264,7 @@ type GeneLengthError struct {
 }
 
 func (e *GeneLengthError) Error() string {
-	return "Gene length is not 9: " + string(e.length)
+	return "Gene length is not 9: " + strconv.Itoa(e.length)
 }
 
 type NoRoleError struct{}

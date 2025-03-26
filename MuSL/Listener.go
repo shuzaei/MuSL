@@ -7,3 +7,7 @@ type Listener struct {
 	listening_probability float64
 	evaluation_cost       const64
 }
+
+func (l *Listener) Listen(agent *[]*Agent) {
+	// あとで実装
+}
