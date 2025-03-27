@@ -33,7 +33,9 @@ func MakeNewSimulation(n_agents, n_iter int, ga_params *GAParams, default_agent_
 // シミュレーションを実行
 func (s *Simulation) Run() {
 	for i := range s.n_iter {
+		// 情報
 		println("Iteration: ", i, "num_agents: ", len(s.agents))
+
 		// new_agents にエージェントをコピー
 		// その際、エネルギーが 0 以下のエージェントを削除
 		new_agents := make([]*Agent, 0)
@@ -44,7 +46,7 @@ func (s *Simulation) Run() {
 		}
 
 		// サマリーを作成
-		s.summery[i+1] = CopySummery(s.summery[i])
+		s.summery[i+1] = MakeNewSummeryFromSummery(s.summery[i])
 
 		// 新しく生まれたエージェントを入れるプール
 		new_born_pool := make([]*Agent, 0)
