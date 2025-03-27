@@ -75,31 +75,6 @@ func MakeNewSummery() *Summery {
 
 func CopySummery(s *Summery) *Summery {
 	return &Summery{
-		num_population:         0,                    // 1-1 再計算
-		num_creaters:           0,                    // 1-2 再計算
-		num_listeners:          0,                    // 1-3 再計算
-		num_organizers:         0,                    // 1-4 再計算
-		num_song_all:           s.num_song_all,       // 加算 (I)
-		num_song_this:          0,                    // リセットして集計 (I)
-		num_song_now:           0,                    // 2 再計算
-		num_evaluation_all:     s.num_evaluation_all, // 加算 (II)
-		num_evaluation_this:    0,                    // リセットして集計 (II)
-		num_event_all:          s.num_event_all,      // 加算 (III)
-		num_event_this:         0,                    // リセットして集計 (III)
-		avg_innovation:         0,                    // 3-1 再計算
-		avg_novelty_preference: 0,                    // 3-2 再計算
-		sum_evaluation:         0,                    // リセットして集計 (IV)
-		avg_evaluation:         0,                    // 4 再計算
-		total_energy:           0,                    // 5-1 再計算
-		energy_creators:        0,                    // 5-2 再計算
-		energy_listeners:       0,                    // 5-3 再計算
-		energy_organizers:      0,                    // 5-4 再計算
-		all_genres:             [][]float64{},        // 6 再取得
-	}
-}
-
-func MakeNewSummeryFromSummery(s *Summery) *Summery {
-	return &Summery{
 		num_population:         s.num_population,
 		num_creaters:           s.num_creaters,
 		num_listeners:          s.num_listeners,
@@ -120,6 +95,31 @@ func MakeNewSummeryFromSummery(s *Summery) *Summery {
 		energy_listeners:       s.energy_listeners,
 		energy_organizers:      s.energy_organizers,
 		all_genres:             s.all_genres,
+	}
+}
+
+func MakeNewSummeryFromSummery(s *Summery) *Summery {
+	return &Summery{
+		num_population:         0,                    // 1-1 再計算
+		num_creaters:           0,                    // 1-2 再計算
+		num_listeners:          0,                    // 1-3 再計算
+		num_organizers:         0,                    // 1-4 再計算
+		num_song_all:           s.num_song_all,       // 加算 (I)
+		num_song_this:          0,                    // リセットして集計 (I)
+		num_song_now:           0,                    // 2 再計算
+		num_evaluation_all:     s.num_evaluation_all, // 加算 (II)
+		num_evaluation_this:    0,                    // リセットして集計 (II)
+		num_event_all:          s.num_event_all,      // 加算 (III)
+		num_event_this:         0,                    // リセットして集計 (III)
+		avg_innovation:         0,                    // 3-1 再計算
+		avg_novelty_preference: 0,                    // 3-2 再計算
+		sum_evaluation:         0,                    // リセットして集計 (IV)
+		avg_evaluation:         0,                    // 4 再計算
+		total_energy:           0,                    // 5-1 再計算
+		energy_creators:        0,                    // 5-2 再計算
+		energy_listeners:       0,                    // 5-3 再計算
+		energy_organizers:      0,                    // 5-4 再計算
+		all_genres:             [][]float64{},        // 6 再取得
 	}
 }
 
