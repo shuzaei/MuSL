@@ -1,1 +1,24 @@
+# バイナリファイル
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# 一時ファイル
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 生成されたファイル
+genre_frames/
+random_frames/
+*.gif
 output.json
+
+# 特定の環境向けの設定ファイル
+.vscode/
+.idea/
+*.iml

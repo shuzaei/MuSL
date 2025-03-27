@@ -1,3 +1,3 @@
 module MuSL
 
-go 1.23.7
+go 1.22.12

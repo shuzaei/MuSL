@@ -9,6 +9,16 @@ import (
 )
 
 func main() {
+	// コマンドライン引数の処理
+	if len(os.Args) > 1 {
+		// visualizerコマンドの場合は別のコマンドで実行するよう指示
+		if os.Args[1] == "visualizer" {
+			fmt.Println("ビジュアライザーを実行するには次のコマンドを使用してください:")
+			fmt.Println("go run cmd/visualizer/main.go")
+			return
+		}
+	}
+
 	// コマンドライン引数でメジャーイベントの確率および出力先を指定
 	var major_probability float64
 	var output_file string

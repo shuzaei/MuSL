@@ -39,14 +39,21 @@ func (s *Simulation) Run() {
 		// new_agents にエージェントをコピー
 		// その際、エネルギーが 0 以下のエージェントを削除
 		new_agents := make([]*Agent, 0)
+		deadCount := 0
+
 		for _, agent := range s.agents {
 			if agent.energy > 0 {
 				new_agents = append(new_agents, agent)
+			} else {
+				deadCount++
 			}
 		}
 
 		// サマリーを作成
 		s.summery[i+1] = MakeNewSummeryFromSummery(s.summery[i])
+
+		// 死者数を記録
+		s.summery[i+1].AddDeaths(deadCount)
 
 		// 新しく生まれたエージェントを入れるプール
 		new_born_pool := make([]*Agent, 0)
@@ -56,6 +63,9 @@ func (s *Simulation) Run() {
 			agent.Run(&new_agents, &new_born_pool,
 				s.ga_params, s.default_agent_params, s.summery[i+1])
 		}
+
+		// 再生産数を記録
+		s.summery[i+1].AddReproductions(len(new_born_pool))
 
 		// エージェントを保存
 		s.agents = append(new_agents, new_born_pool...)

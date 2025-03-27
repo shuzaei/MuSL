@@ -5,10 +5,32 @@ import (
 	"math/rand"
 )
 
-// Readonly
+// 曲のIDを管理するためのカウンター
+var nextSongID int = 0
+
+func GetNewSongID() int {
+	nextSongID++
+	return nextSongID
+}
+
 type Song struct {
+	id      int // 曲のユニークID
 	genre   []float64
 	creator *Agent
+}
+
+// DeepCopy は Song のディープコピーを作成します
+func (s *Song) DeepCopy() *Song {
+	// 新しいジャンル配列を作成
+	genreCopy := make([]float64, len(s.genre))
+	copy(genreCopy, s.genre)
+
+	// 新しい Song 構造体を返す
+	return &Song{
+		id:      s.id,      // ID はそのまま
+		genre:   genreCopy, // コピーしたジャンル情報
+		creator: s.creator, // 作成者はポインタなのでそのまま
+	}
 }
 
 type Creator struct {
@@ -34,8 +56,9 @@ func (c *Creator) Create(agents *[]*Agent, me *Agent, summery *Summery) {
 		} else {
 			random_index := rand.Intn(len(c.memory))
 			for i := 0; i < len(genre); i++ {
-				genre[i] = c.memory[random_index].genre[i] +
-					(rand.Float64()*2.0-1.0)*c.innovation_rate
+				// 革新性を両方向に適用（現在は常に正の方向）
+				// 修正：-0.5〜0.5の範囲で変動させ、innovation_rateでスケール
+				genre[i] = c.memory[random_index].genre[i] + (rand.Float64()-0.5)*2.0*c.innovation_rate
 
 				// 0 以上 1 未満に収める
 				genre[i] = math.Max(0.0, math.Min(1.0, genre[i]))
@@ -44,9 +67,12 @@ func (c *Creator) Create(agents *[]*Agent, me *Agent, summery *Summery) {
 
 		// 曲を生成して memory に追加
 		song := &Song{
-			genre:   genre,
+			id:      GetNewSongID(),
+			genre:   make([]float64, len(genre)), // ジャンル情報用に新しいスライスを作成
 			creator: me,
 		}
+		// ジャンル情報をディープコピー
+		copy(song.genre, genre)
 		c.memory = append(c.memory, song)
 
 		// エネルギーを消費
