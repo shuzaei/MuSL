@@ -52,9 +52,16 @@ type GenreInfo struct {
 func runSimulationHandler(w http.ResponseWriter, r *http.Request) {
 	// リクエストデータを解析
 	var requestData struct {
-		MajorProb     float64 `json:"majorProb"`
-		InitialAgents int     `json:"initialAgents"`
-		Iterations    int     `json:"iterations"`
+		MajorProb        float64 `json:"majorProb"`
+		InitialAgents    int     `json:"initialAgents"`
+		Iterations       int     `json:"iterations"`
+		AdvancedSettings struct {
+			InnovationRate          float64 `json:"innovationRate"`
+			NoveltyPreference       float64 `json:"noveltyPreference"`
+			ReproductionProbability float64 `json:"reproductionProbability"`
+			CreationProbability     float64 `json:"creationProbability"`
+			ListeningProbability    float64 `json:"listeningProbability"`
+		} `json:"advancedSettings"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
@@ -73,6 +80,30 @@ func runSimulationHandler(w http.ResponseWriter, r *http.Request) {
 	// GAパラメータの設定
 	gaParams := MuSL.MakeGAParams(0.1, 0.05)
 
+	// 高度な設定からパラメータを取得（デフォルト値への対応）
+	innovationRate := 0.5
+	noveltyPreference := 0.5
+	reproductionProbability := 0.5
+	creationProbability := 0.5
+	listeningProbability := 0.5
+
+	// 高度な設定が指定されていれば上書き
+	if requestData.AdvancedSettings.InnovationRate != 0 {
+		innovationRate = requestData.AdvancedSettings.InnovationRate
+	}
+	if requestData.AdvancedSettings.NoveltyPreference != 0 {
+		noveltyPreference = requestData.AdvancedSettings.NoveltyPreference
+	}
+	if requestData.AdvancedSettings.ReproductionProbability != 0 {
+		reproductionProbability = requestData.AdvancedSettings.ReproductionProbability
+	}
+	if requestData.AdvancedSettings.CreationProbability != 0 {
+		creationProbability = requestData.AdvancedSettings.CreationProbability
+	}
+	if requestData.AdvancedSettings.ListeningProbability != 0 {
+		listeningProbability = requestData.AdvancedSettings.ListeningProbability
+	}
+
 	// デフォルトエージェントパラメータの設定
 	defaultAgentParams := MuSL.MakeNewAgent(
 		-1,                       // id
@@ -80,20 +111,20 @@ func runSimulationHandler(w http.ResponseWriter, r *http.Request) {
 		100.0,                    // energy
 		100.0,                    // default_energy
 		0.0,                      // elimination_threshold
-		0.5,                      // reproduction_probability
+		reproductionProbability,  // reproduction_probability
 
 		// creator
-		0.5,                   // innovation_rate
+		innovationRate,        // innovation_rate
 		make([]*MuSL.Song, 0), // memory
-		0.5,                   // creation_probability
+		creationProbability,   // creation_probability
 		1.0,                   // creation_cost
 
 		// listener
-		0.5,                    // novelty_preference
+		noveltyPreference,      // novelty_preference
 		make([]*MuSL.Song, 0),  // memory
 		make([]*MuSL.Song, 0),  // incoming_songs
 		make([]*MuSL.Event, 0), // song_events
-		0.5,                    // listening_probability
+		listeningProbability,   // listening_probability
 		1.0,                    // evaluation_cost
 
 		// organizer
@@ -351,9 +382,18 @@ func drawPoint(img *image.RGBA, x, y, size int, c color.RGBA) {
 					// 中心ほど濃く（グラデーション）
 					dist := math.Sqrt(float64(dx*dx+dy*dy)) / float64(size)
 					alpha := uint8(float64(c.A) * (1.0 - 0.7*dist))
-					if alpha > 0 {
-						blended := color.RGBA{c.R, c.G, c.B, alpha}
-						img.Set(px, py, blended)
+
+					// 現在の色を取得
+					currentColor := img.RGBAAt(px, py)
+
+					// 背景が白の場合は単純に新しい色を設定
+					if currentColor.R == 255 && currentColor.G == 255 && currentColor.B == 255 {
+						img.Set(px, py, color.RGBA{c.R, c.G, c.B, alpha})
+					} else {
+						// 既に他の点が描画されている場合は、より強い色（アルファ値が大きい方）を優先
+						if alpha > currentColor.A {
+							img.Set(px, py, color.RGBA{c.R, c.G, c.B, alpha})
+						}
 					}
 				}
 			}
