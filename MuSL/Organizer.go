@@ -5,6 +5,7 @@ import (
 	"sort"
 )
 
+// Readonly
 type Event struct {
 	event_type        string
 	creator_pool      []*Song

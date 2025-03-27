@@ -5,6 +5,7 @@ import (
 	"math/rand"
 )
 
+// Readonly
 type Song struct {
 	genre   []float64
 	creator *Agent
@@ -33,7 +34,8 @@ func (c *Creator) Create(agents *[]*Agent, me *Agent, summery *Summery) {
 		} else {
 			random_index := rand.Intn(len(c.memory))
 			for i := 0; i < len(genre); i++ {
-				genre[i] = c.memory[random_index].genre[i] + rand.Float64()*c.innovation_rate
+				genre[i] = c.memory[random_index].genre[i] +
+					(rand.Float64()*2.0-1.0)*c.innovation_rate
 
 				// 0 以上 1 未満に収める
 				genre[i] = math.Max(0.0, math.Min(1.0, genre[i]))

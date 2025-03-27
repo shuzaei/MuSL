@@ -91,9 +91,35 @@ func MakeNewAgent(
 }
 
 func CopyAgent(a *Agent) *Agent {
+	// スライスのコピーは参照渡しになるので、新しく作成する
+
+	// role のコピー
+	role_c := make([]bool, len(a.role))
+	copy(role_c, a.role)
+
+	// memory のコピー
+	memory_c := make([]*Song, len(a.creator.memory))
+	copy(memory_c, a.creator.memory)
+
+	// memory のコピー
+	memory_l := make([]*Song, len(a.listener.memory))
+	copy(memory_l, a.listener.memory)
+
+	// incoming_songs のコピー
+	incoming_songs := make([]*Song, len(a.listener.incoming_songs))
+	copy(incoming_songs, a.listener.incoming_songs)
+
+	// song_events のコピー
+	song_events := make([]*Event, len(a.listener.song_events))
+	copy(song_events, a.listener.song_events)
+
+	// created_events のコピー
+	created_events := make([]*Event, len(a.organizer.created_events))
+	copy(created_events, a.organizer.created_events)
+
 	return MakeNewAgent(
 		a.id,
-		a.role,
+		role_c, // Copy
 		a.energy,
 		a.default_energy,
 		a.elimination_threshold,
@@ -101,21 +127,21 @@ func CopyAgent(a *Agent) *Agent {
 
 		// creator
 		a.creator.innovation_rate,
-		a.creator.memory,
+		memory_c, // Copy
 		a.creator.creation_probability,
 		a.creator.creation_cost,
 
 		// listener
 		a.listener.novelty_preference,
-		a.listener.memory,
-		a.listener.incoming_songs,
-		a.listener.song_events,
+		memory_l,       // Copy
+		incoming_songs, // Copy
+		song_events,    // Copy
 		a.listener.listening_probability,
 		a.listener.evaluation_cost,
 
 		// organizer
 		a.organizer.major_probability,
-		a.organizer.created_events,
+		created_events, // Copy
 		a.organizer.event_probability,
 		a.organizer.organization_cost,
 		a.organizer.organization_reward,

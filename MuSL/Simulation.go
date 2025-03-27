@@ -34,7 +34,7 @@ func MakeNewSimulation(n_agents, n_iter int, ga_params *GAParams, default_agent_
 func (s *Simulation) Run() {
 	for i := range s.n_iter {
 		// 情報
-		println("Iteration: ", i, "Agents: ", len(s.agents), "Songs: ", s.summery[i].num_song_now)
+		println("Iteration:", i, "  Agents:", len(s.agents), "  Songs:", s.summery[i].num_song_now)
 
 		// new_agents にエージェントをコピー
 		// その際、エネルギーが 0 以下のエージェントを削除
