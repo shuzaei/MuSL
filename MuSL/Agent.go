@@ -90,77 +90,52 @@ func MakeNewAgent(
 	}
 }
 
-func CopyAgent(a *Agent) *Agent {
-	// スライスのコピーは参照渡しになるので、新しく作成する
-
-	// role のコピー
-	role_c := make([]bool, len(a.role))
-	copy(role_c, a.role)
-
-	// memory のコピー
-	memory_c := make([]*Song, len(a.creator.memory))
-	copy(memory_c, a.creator.memory)
-
-	// memory のコピー
-	memory_l := make([]*Song, len(a.listener.memory))
-	copy(memory_l, a.listener.memory)
-
-	// incoming_songs のコピー
-	incoming_songs := make([]*Song, len(a.listener.incoming_songs))
-	copy(incoming_songs, a.listener.incoming_songs)
-
-	// song_events のコピー
-	song_events := make([]*Event, len(a.listener.song_events))
-	copy(song_events, a.listener.song_events)
-
-	// created_events のコピー
-	created_events := make([]*Event, len(a.organizer.created_events))
-	copy(created_events, a.organizer.created_events)
-
+// 実験定数の部分だけをコピーし、その他を初期化する
+func MakeNewAgentFromAgent(a *Agent) *Agent {
 	return MakeNewAgent(
-		a.id,
-		role_c, // Copy
-		a.energy,
-		a.default_energy,
-		a.elimination_threshold,
-		a.reproduction_probability,
+		-1,                          // id
+		[]bool{false, false, false}, // Gene (role)
+		float64(a.default_energy),   // 動的に変化
+		a.default_energy,            // 実験定数
+		a.elimination_threshold,     // 実験定数
+		-1,                          // Gene (reproduction_probability)
 
 		// creator
-		a.creator.innovation_rate,
-		memory_c, // Copy
-		a.creator.creation_probability,
-		a.creator.creation_cost,
+		-1,                      // Gene (innovation_rate)
+		make([]*Song, 0),        // 動的に変化
+		-1,                      // Gene (creation_probability)
+		a.creator.creation_cost, // 実験定数
 
 		// listener
-		a.listener.novelty_preference,
-		memory_l,       // Copy
-		incoming_songs, // Copy
-		song_events,    // Copy
-		a.listener.listening_probability,
-		a.listener.evaluation_cost,
+		-1,                         // Gene (novelty_preference)
+		make([]*Song, 0),           // 動的に変化
+		make([]*Song, 0),           // 動的に変化
+		make([]*Event, 0),          // 動的に変化
+		-1,                         // Gene (listening_probability)
+		a.listener.evaluation_cost, // 実験定数
 
 		// organizer
-		a.organizer.major_probability,
-		created_events, // Copy
-		a.organizer.event_probability,
-		a.organizer.organization_cost,
-		a.organizer.organization_reward,
+		a.organizer.major_probability,   // 実験定数
+		make([]*Event, 0),               // 動的に変化
+		-1,                              // Gene (event_probability)
+		a.organizer.organization_cost,   // 実験定数
+		a.organizer.organization_reward, // 実験定数
 
 		// イベント生成用のパラメータ
 		// メジャーイベント
-		a.organizer.major_listener_ratio,
-		a.organizer.major_creator_ratio,
-		a.organizer.major_song_ratio,
-		a.organizer.major_winner_ratio,
-		a.organizer.major_reward_ratio,
-		a.organizer.major_recommendation_ratio,
+		a.organizer.major_listener_ratio,       // 実験定数
+		a.organizer.major_creator_ratio,        // 実験定数
+		a.organizer.major_song_ratio,           // 実験定数
+		a.organizer.major_winner_ratio,         // 実験定数
+		a.organizer.major_reward_ratio,         // 実験定数
+		a.organizer.major_recommendation_ratio, // 実験定数
 
 		// マイナーイベント
-		a.organizer.minor_listener_ratio,
-		a.organizer.minor_creator_ratio,
-		a.organizer.minor_song_ratio,
-		a.organizer.minor_reward_ratio,
-		a.organizer.minor_recommendation_ratio,
+		a.organizer.minor_listener_ratio,       // 実験定数
+		a.organizer.minor_creator_ratio,        // 実験定数
+		a.organizer.minor_song_ratio,           // 実験定数
+		a.organizer.minor_reward_ratio,         // 実験定数
+		a.organizer.minor_recommendation_ratio, // 実験定数
 	)
 }
 
@@ -262,7 +237,7 @@ func (a *Agent) Reproduce(agents, new_born_pool *[]*Agent, gaParams *GAParams, d
 		}
 
 		spouse := spouse_candidates[rand.IntN(len(spouse_candidates))]
-		child, err := ReproduceGA(a, spouse, gaParams, default_agent_params, CopyAgent)
+		child, err := ReproduceGA(a, spouse, gaParams, default_agent_params, MakeNewAgentFromAgent)
 		if err == nil {
 			child.id = GetNewID()
 			*new_born_pool = append(*new_born_pool, child)

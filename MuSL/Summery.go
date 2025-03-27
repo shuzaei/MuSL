@@ -73,31 +73,6 @@ func MakeNewSummery() *Summery {
 	}
 }
 
-func CopySummery(s *Summery) *Summery {
-	return &Summery{
-		num_population:         s.num_population,
-		num_creaters:           s.num_creaters,
-		num_listeners:          s.num_listeners,
-		num_organizers:         s.num_organizers,
-		num_song_all:           s.num_song_all,
-		num_song_this:          s.num_song_this,
-		num_song_now:           s.num_song_now,
-		num_evaluation_all:     s.num_evaluation_all,
-		num_evaluation_this:    s.num_evaluation_this,
-		num_event_all:          s.num_event_all,
-		num_event_this:         s.num_event_this,
-		avg_innovation:         s.avg_innovation,
-		avg_novelty_preference: s.avg_novelty_preference,
-		sum_evaluation:         s.sum_evaluation,
-		avg_evaluation:         s.avg_evaluation,
-		total_energy:           s.total_energy,
-		energy_creators:        s.energy_creators,
-		energy_listeners:       s.energy_listeners,
-		energy_organizers:      s.energy_organizers,
-		all_genres:             s.all_genres,
-	}
-}
-
 func MakeNewSummeryFromSummery(s *Summery) *Summery {
 	return &Summery{
 		num_population:         0,                    // 1-1 再計算

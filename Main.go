@@ -44,7 +44,7 @@ func main() {
 		0.5,                   //     innovation_rate
 		make([]*MuSL.Song, 0), //     memory
 		0.5,                   //     creation_probability
-		2.0,                   // [*] creation_cost
+		1.0,                   // [*] creation_cost
 
 		// listener
 		0.5,                    //     novelty_preference
@@ -52,14 +52,14 @@ func main() {
 		make([]*MuSL.Song, 0),  //     incoming_songs
 		make([]*MuSL.Event, 0), //     song_events
 		0.5,                    //     listening_probability
-		2.0,                    // [*] evaluation_cost
+		1.0,                    // [*] evaluation_cost
 
 		// organizer
 		MuSL.Const64(major_probability), // [*] major_probability
 		make([]*MuSL.Event, 0),          //     created_events
 		0.5,                             //     event_probability
 		0.5,                             // [*] organization_cost
-		2.0,                             // [*] organization_reward
+		1.0,                             // [*] organization_reward
 
 		// イベント生成用のパラメータ
 		// メジャーイベント
