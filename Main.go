@@ -52,7 +52,7 @@ func main() {
 		make([]*MuSL.Song, 0),  //     incoming_songs
 		make([]*MuSL.Event, 0), //     song_events
 		0.5,                    //     listening_probability
-		0.5,                    // [*] evaluation_cost
+		5.0,                    // [*] evaluation_cost
 
 		// organizer
 		MuSL.Const64(major_probability), // [*] major_probability

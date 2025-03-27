@@ -33,6 +33,7 @@ func MakeNewSimulation(n_agents, n_iter int, ga_params *GAParams, default_agent_
 // シミュレーションを実行
 func (s *Simulation) Run() {
 	for i := range s.n_iter {
+		println("Iteration: ", i, "num_agents: ", len(s.agents))
 		// new_agents にエージェントをコピー
 		// その際、エネルギーが 0 以下のエージェントを削除
 		new_agents := make([]*Agent, 0)

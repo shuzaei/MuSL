@@ -204,7 +204,10 @@ func (o *Organizer) Organize(agents *[]*Agent, me *Agent, summery *Summery) {
 				}
 
 				if rand.Float64() < recommendation_ratio {
+					// リスナーに曲をおすすめ
 					listener.listener.incoming_songs = append(listener.listener.incoming_songs, song)
+					// イベントも登録
+					listener.listener.song_events = append(listener.listener.song_events, event)
 				}
 			}
 		}
