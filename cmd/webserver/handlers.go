@@ -12,7 +12,6 @@ import (
 	"io/ioutil"
 	"math"
 	"math/rand"
-	"math/sort"
 	"net/http"
 	"os"
 	"path/filepath"
