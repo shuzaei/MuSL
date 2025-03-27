@@ -35,7 +35,7 @@ type Organizer struct {
 	minor_reward_ratio   const64 // そのまま報酬を与える割合
 }
 
-func (o *Organizer) Organize(agents *[]*Agent, me *Agent) {
+func (o *Organizer) Organize(agents *[]*Agent, me *Agent, summery *Summery) {
 	// 前回のイベントの報酬を支払う
 	for _, event := range o.created_events {
 		// イベントの報酬を支払う
@@ -189,6 +189,10 @@ func (o *Organizer) Organize(agents *[]*Agent, me *Agent) {
 			event.evaluation_reward[song] = 0.0
 		}
 
-		// 評価は次のイテレーションであつまる
+		// 集計 (III)
+		summery.num_event_all++
+		summery.num_event_this++
+
+		// 評価は次のイテレーションまでに集められる
 	}
 }

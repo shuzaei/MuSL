@@ -14,7 +14,7 @@ type Listener struct {
 	evaluation_cost       const64
 }
 
-func (l *Listener) Listen(agents *[]*Agent, me *Agent) {
+func (l *Listener) Listen(agents *[]*Agent, me *Agent, summery *Summery) {
 	if len(l.incoming_songs) == 0 {
 		return
 	}
@@ -47,6 +47,16 @@ func (l *Listener) Listen(agents *[]*Agent, me *Agent) {
 			// 報酬価格を支払う
 			l.song_events[i].evaluation_reward[song] += float64(l.evaluation_cost)
 			me.energy -= float64(l.evaluation_cost)
+
+			// 記憶に追加
+			l.memory = append(l.memory, song)
+
+			// 集計 (II)
+			summery.num_evaluation_all++
+			summery.num_evaluation_this++
+
+			// 集計 (IV)
+			summery.sum_evaluation += evaluation
 		}
 	}
 

@@ -17,7 +17,7 @@ type Creator struct {
 	creation_cost        const64
 }
 
-func (c *Creator) Create(agents *[]*Agent, me *Agent) {
+func (c *Creator) Create(agents *[]*Agent, me *Agent, summery *Summery) {
 	if rand.Float64() < c.creation_probability {
 		// 曲を生成
 		genre := make([]float64, 2)
@@ -49,5 +49,9 @@ func (c *Creator) Create(agents *[]*Agent, me *Agent) {
 
 		// エネルギーを消費
 		me.energy -= float64(c.creation_cost)
+
+		// 集計 (I)
+		summery.num_song_all++
+		summery.num_song_this++
 	}
 }

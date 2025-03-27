@@ -189,28 +189,28 @@ func MakeRandomAgentFromParams(
 	)
 }
 
-func (a *Agent) Run(agents *[]*Agent, gaParams *GAParams, default_agent_params *Agent) {
+func (a *Agent) Run(agents, new_born_pool *[]*Agent, gaParams *GAParams, default_agent_params *Agent, summery *Summery) {
 
 	// リスナー
 	if a.role[1] {
-		a.listener.Listen(agents, a)
+		a.listener.Listen(agents, a, summery)
 	}
 
 	// クリエイター
 	if a.role[0] {
-		a.creator.Create(agents, a)
+		a.creator.Create(agents, a, summery)
 	}
 
 	// オーガナイザー
 	if a.role[2] {
-		a.organizer.Organize(agents, a)
+		a.organizer.Organize(agents, a, summery)
 	}
 
 	// 再生産
-	a.Reproduce(agents, gaParams, default_agent_params)
+	a.Reproduce(agents, new_born_pool, gaParams, default_agent_params, summery)
 }
 
-func (a *Agent) Reproduce(agents *[]*Agent, gaParams *GAParams, default_agent_params *Agent) {
+func (a *Agent) Reproduce(agents, new_born_pool *[]*Agent, gaParams *GAParams, default_agent_params *Agent, summery *Summery) {
 	// もしエネルギーが default_energy/2 以上なら、reproduction_probability の確率で子供を作る
 	if a.energy < float64(a.default_energy)/2 {
 		return
@@ -233,7 +233,7 @@ func (a *Agent) Reproduce(agents *[]*Agent, gaParams *GAParams, default_agent_pa
 		child, err := ReproduceGA(a, spouse, gaParams, default_agent_params, CopyAgent)
 		if err == nil {
 			child.id = GetNewID()
-			*agents = append(*agents, child)
+			*new_born_pool = append(*new_born_pool, child)
 		}
 
 		// たまに失敗することもあるが、失敗してもエネルギーは減らす
