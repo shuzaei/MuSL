@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-type const64 float64 // 実験時に確定する定数
+type Const64 float64 // 実験時に確定する定数
 
 // エージェントの ID を管理するためのグローバル変数
 // リエントラントかどうかは気にしない
@@ -20,8 +20,8 @@ type Agent struct {
 	id                       int
 	role                     []bool // [creator, listener, organizer]
 	energy                   float64
-	default_energy           const64
-	elimination_threshold    const64
+	default_energy           Const64
+	elimination_threshold    Const64
 	reproduction_probability float64
 
 	creator   *Creator
@@ -33,15 +33,15 @@ func MakeNewAgent(
 	id int,
 	role []bool, // -------------------- Gene
 	energy float64, // ----------------- 動的に変化
-	default_energy const64, // --------- 実験定数
-	elimination_threshold const64, // -- 実験定数
+	default_energy Const64, // --------- 実験定数
+	elimination_threshold Const64, // -- 実験定数
 	reproduction_probability float64, // Gene
 
 	// creator
 	innovation_rate float64, // -------- Gene
 	memory_c []*Song, // --------------- 動的に変化
 	creation_probability float64, // --- Gene
-	creation_cost const64, // ---------- 実験定数
+	creation_cost Const64, // ---------- 実験定数
 
 	// listener
 	novelty_preference float64, // ----- Gene
@@ -49,28 +49,28 @@ func MakeNewAgent(
 	incoming_songs []*Song, // --------- 動的に変化
 	song_events []*Event, // ----------- 動的に変化
 	listening_probability float64, // -- Gene
-	evaluation_cost const64, // -------- 実験定数
+	evaluation_cost Const64, // -------- 実験定数
 
 	// organizer
-	major_probability const64, // ------ 実験定数
+	major_probability Const64, // ------ 実験定数
 	created_events []*Event, // -------- 動的に変化
 	event_probability float64, // ------ Gene
-	organization_cost const64, // ------ 実験定数
-	organization_reward const64, // ---- 実験定数
+	organization_cost Const64, // ------ 実験定数
+	organization_reward Const64, // ---- 実験定数
 
 	// イベント生成用のパラメータ
 	// メジャーイベント
-	major_listener_ratio const64, // --- 実験定数
-	major_creator_ratio const64, // ---- 実験定数
-	major_song_ratio const64, // ------- 実験定数
-	major_winner_ratio const64, // ----- 実験定数
-	major_reward_ratio const64, // ----- 実験定数
+	major_listener_ratio Const64, // --- 実験定数
+	major_creator_ratio Const64, // ---- 実験定数
+	major_song_ratio Const64, // ------- 実験定数
+	major_winner_ratio Const64, // ----- 実験定数
+	major_reward_ratio Const64, // ----- 実験定数
 
 	// マイナーイベント
-	minor_listener_ratio const64, // --- 実験定数
-	minor_creator_ratio const64, // ---- 実験定数
-	minor_song_ratio const64, // ------- 実験定数
-	minor_reward_ratio const64, // ----- 実験定数
+	minor_listener_ratio Const64, // --- 実験定数
+	minor_creator_ratio Const64, // ---- 実験定数
+	minor_song_ratio Const64, // ------- 実験定数
+	minor_reward_ratio Const64, // ----- 実験定数
 ) *Agent {
 	return &Agent{
 		id:                       id,

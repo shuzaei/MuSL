@@ -2,10 +2,27 @@ package main
 
 import (
 	"MuSL/MuSL"
+	"encoding/json"
+	"flag"
 	"fmt"
+	"os"
 )
 
 func main() {
+	// コマンドライン引数でメジャーイベントの確率および出力先を指定
+	var major_probability float64
+	var output_file string
+
+	flag.Float64Var(&major_probability, "major_probability", 0.5, "Probability of major events (default: 0.5)")
+	flag.StringVar(&output_file, "output_file", "output.json", "Output file name (default: output.json)")
+	flag.Parse()
+
+	if major_probability < 0 || major_probability > 1 {
+		fmt.Println("Invalid major_probability: must be between 0 and 1")
+		return
+	}
+
+	// シミュレーションのパラメータ
 	n_agents := 100
 	n_iter := 100
 
@@ -38,11 +55,11 @@ func main() {
 		0.5,                    // [*] evaluation_cost
 
 		// organizer
-		0.5,                    // [*] major_probability
-		make([]*MuSL.Event, 0), //     created_events
-		0.5,                    //     event_probability
-		0.5,                    // [*] organization_cost
-		0.5,                    // [*] organization_reward
+		MuSL.Const64(major_probability), // [*] major_probability
+		make([]*MuSL.Event, 0),          //     created_events
+		0.5,                             //     event_probability
+		0.5,                             // [*] organization_cost
+		0.5,                             // [*] organization_reward
 
 		// イベント生成用のパラメータ
 		// メジャーイベント
@@ -62,5 +79,22 @@ func main() {
 	sim := MuSL.MakeNewSimulation(n_agents, n_iter, ga_params, default_agent_params)
 	sim.Run()
 
-	fmt.Println(sim.GetResult())
+	summery := sim.GetSummery() // []*PublicSummery
+
+	// サマリーを json に変換
+	json, err := json.MarshalIndent(summery, "", "  ")
+	if err != nil {
+		fmt.Println("Error converting summery to JSON:", err)
+		return
+	}
+
+	// ファイルに書き込み
+	file, err := os.Create(output_file)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer file.Close()
+
+	file.Write(json)
 }

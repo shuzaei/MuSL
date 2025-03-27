@@ -11,7 +11,7 @@ type Listener struct {
 	incoming_songs        []*Song
 	song_events           []*Event
 	listening_probability float64
-	evaluation_cost       const64
+	evaluation_cost       Const64
 }
 
 func (l *Listener) Listen(agents *[]*Agent, me *Agent, summery *Summery) {

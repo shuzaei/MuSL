@@ -14,25 +14,25 @@ type Event struct {
 }
 
 type Organizer struct {
-	major_probability   const64
+	major_probability   Const64
 	created_events      []*Event
 	event_probability   float64
-	organization_cost   const64
-	organization_reward const64
+	organization_cost   Const64
+	organization_reward Const64
 
 	// イベント生成用のパラメータ
 	// メジャーイベント
-	major_listener_ratio const64
-	major_creator_ratio  const64
-	major_song_ratio     const64
-	major_winner_ratio   const64 // 上位何%に報酬を与えるか
-	major_reward_ratio   const64 // 上位に与える報酬の割合
+	major_listener_ratio Const64
+	major_creator_ratio  Const64
+	major_song_ratio     Const64
+	major_winner_ratio   Const64 // 上位何%に報酬を与えるか
+	major_reward_ratio   Const64 // 上位に与える報酬の割合
 
 	// マイナーイベント
-	minor_listener_ratio const64
-	minor_creator_ratio  const64
-	minor_song_ratio     const64
-	minor_reward_ratio   const64 // そのまま報酬を与える割合
+	minor_listener_ratio Const64
+	minor_creator_ratio  Const64
+	minor_song_ratio     Const64
+	minor_reward_ratio   Const64 // そのまま報酬を与える割合
 }
 
 func (o *Organizer) Organize(agents *[]*Agent, me *Agent, summery *Summery) {

@@ -63,6 +63,6 @@ func (s *Simulation) Run() {
 }
 
 // シミュレーションの結果を返す
-func (s *Simulation) GetResult() []*Summery {
-	return s.summery
+func (s *Simulation) GetSummery() []*PublicSummery {
+	return PublishAllSummery(s.summery)
 }

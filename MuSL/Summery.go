@@ -1,5 +1,6 @@
 package MuSL
 
+// シミュレーションのサマリー
 type Summery struct {
 	// [*] は、イテレーションの最後に Calculate で計算するもの
 	num_population         int     // [*] 人数 (B)
@@ -22,6 +23,29 @@ type Summery struct {
 	energy_listeners       float64 // [*] 聴取者のエネルギーの総量 (F)
 	energy_organizers      float64 // [*] 運営者のエネルギーの総量 (F)
 	all_genres             [][]float64
+}
+
+type PublicSummery struct {
+	NumPopulation        int     `json:"num_population"`
+	NumCreaters          int     `json:"num_creaters"`
+	NumListeners         int     `json:"num_listeners"`
+	NumOrganizers        int     `json:"num_organizers"`
+	NumSongAll           int     `json:"num_song_all"`
+	NumSongThis          int     `json:"num_song_this"`
+	NumSongNow           int     `json:"num_song_now"`
+	NumEvaluationAll     int     `json:"num_evaluation_all"`
+	NumEvaluationThis    int     `json:"num_evaluation_this"`
+	NumEventAll          int     `json:"num_event_all"`
+	NumEventThis         int     `json:"num_event_this"`
+	AvgInnovation        float64 `json:"avg_innovation"`
+	AvgNoveltyPreference float64 `json:"avg_novelty_preference"`
+	SumEvaluation        float64 `json:"sum_evaluation"`
+	AvgEvaluation        float64 `json:"avg_evaluation"`
+	TotalEnergy          float64 `json:"total_energy"`
+	EnergyCreators       float64 `json:"energy_creators"`
+	EnergyListeners      float64 `json:"energy_listeners"`
+	EnergyOrganizers     float64 `json:"energy_organizers"`
+	AllGenres            [][]float64
 }
 
 func MakeNewSummery() *Summery {
@@ -97,6 +121,39 @@ func MakeNewSummeryFromSummery(s *Summery) *Summery {
 		energy_organizers:      s.energy_organizers,
 		all_genres:             s.all_genres,
 	}
+}
+
+func (s *Summery) Publish() *PublicSummery {
+	return &PublicSummery{
+		NumPopulation:        s.num_population,
+		NumCreaters:          s.num_creaters,
+		NumListeners:         s.num_listeners,
+		NumOrganizers:        s.num_organizers,
+		NumSongAll:           s.num_song_all,
+		NumSongThis:          s.num_song_this,
+		NumSongNow:           s.num_song_now,
+		NumEvaluationAll:     s.num_evaluation_all,
+		NumEvaluationThis:    s.num_evaluation_this,
+		NumEventAll:          s.num_event_all,
+		NumEventThis:         s.num_event_this,
+		AvgInnovation:        s.avg_innovation,
+		AvgNoveltyPreference: s.avg_novelty_preference,
+		SumEvaluation:        s.sum_evaluation,
+		AvgEvaluation:        s.avg_evaluation,
+		TotalEnergy:          s.total_energy,
+		EnergyCreators:       s.energy_creators,
+		EnergyListeners:      s.energy_listeners,
+		EnergyOrganizers:     s.energy_organizers,
+		AllGenres:            s.all_genres,
+	}
+}
+
+func PublishAllSummery(summery []*Summery) []*PublicSummery {
+	ret := make([]*PublicSummery, len(summery))
+	for i, s := range summery {
+		ret[i] = s.Publish()
+	}
+	return ret
 }
 
 func (s *Summery) Calculate(agents []*Agent) {
