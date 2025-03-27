@@ -284,24 +284,24 @@ func getSongColor(songID int, allIDs []int, totalIDs int) color.RGBA {
 
 	// 古さに基づいた色分け - より明確にする
 	// IDの順序は古い順（IDが小さいほど古い）
-	// 最も古い曲: 青系色 (0.6, 0.6, 1.0)
+	// 最も古い曲: 青系色
 	// 中間の曲: 紫・緑系色
-	// 最も新しい曲: 赤系色 (1.0, 0.3, 0.3)
+	// 最も新しい曲: 赤系色
 
 	// より明確な色付けのための調整
-	r := 0.4 + normalizedPos*0.6 // 0.4〜1.0（古い曲はやや赤みが少なく、新しい曲ほど赤み強く）
-	g := 0.4 - normalizedPos*0.2 // 0.4〜0.2（緑成分は新しくなるほど減少）
-	b := 1.0 - normalizedPos*0.8 // 1.0〜0.2（青成分は古い曲ほど強く、新しい曲は弱く）
+	r := 0.4 + normalizedPos*0.6  // 0.4〜1.0（古い曲はやや赤みが少なく、新しい曲ほど赤み強く）
+	g := 0.4 - normalizedPos*0.25 // 0.4〜0.15（緑成分は新しくなるほど減少）
+	b := 1.0 - normalizedPos*0.7  // 1.0〜0.3（青成分は古い曲ほど強く、新しい曲は弱く）
 
-	// 透明度も年代に応じて調整
-	opacity := 0.5 + normalizedPos*0.5 // 50%〜100%（古い曲は半透明で、新しい曲ほど不透明に）
+	// 透明度も年代に応じて調整（新しい曲ほど目立つように）
+	opacity := 0.6 + normalizedPos*0.4 // 60%〜100%（古い曲は半透明で、新しい曲ほど不透明に）
 
 	// 最終的なRGB値を計算
 	return color.RGBA{
-		R: uint8(r * 255 * opacity),
-		G: uint8(g * 255 * opacity),
-		B: uint8(b * 255 * opacity),
-		A: 255, // 完全不透明
+		R: uint8(r * 255),
+		G: uint8(g * 255),
+		B: uint8(b * 255),
+		A: uint8(opacity * 255), // 透明度を適用
 	}
 }
 
@@ -399,6 +399,40 @@ func generateGenreFrames(summaries []PublicSummery, outputDir string) {
 			}
 		}
 
+		// Draw color legend for song age
+		legendX := width - margin - 120
+		legendY := height - margin - 100
+		legendWidth := 100
+		legendHeight := 20
+
+		// Draw legend title
+		drawText(img, "Song Age:", legendX, legendY-10, color.RGBA{0, 0, 0, 255})
+
+		// Draw gradient bar
+		for x := 0; x < legendWidth; x++ {
+			normalizedPos := float64(x) / float64(legendWidth-1)
+			// Use same color logic as getSongColor
+			r := 0.4 + normalizedPos*0.6
+			g := 0.4 - normalizedPos*0.25
+			b := 1.0 - normalizedPos*0.7
+			opacity := 0.6 + normalizedPos*0.4
+
+			pointColor := color.RGBA{
+				R: uint8(r * 255),
+				G: uint8(g * 255),
+				B: uint8(b * 255),
+				A: uint8(opacity * 255),
+			}
+
+			for y := 0; y < legendHeight; y++ {
+				img.Set(legendX+x, legendY+y, pointColor)
+			}
+		}
+
+		// Draw legend labels
+		drawText(img, "Old", legendX, legendY+legendHeight+10, color.RGBA{0, 0, 200, 255})
+		drawText(img, "New", legendX+legendWidth-24, legendY+legendHeight+10, color.RGBA{200, 0, 0, 255})
+
 		// Draw data points
 		scale := float64(width - 2*margin)
 
@@ -425,8 +459,23 @@ func generateGenreFrames(summaries []PublicSummery, outputDir string) {
 			// Get color based on song ID (consistent across all frames)
 			pointColor := getSongColor(genreInfo.ID, allSongIDs, len(allSongIDs))
 
-			// Draw a simple point (5x5 square)
-			pointSize := 2
+			// 古い曲と新しい曲でサイズを変える
+			position := 0
+			for i, id := range allSongIDs {
+				if id == genreInfo.ID {
+					position = i
+					break
+				}
+			}
+			normalizedPos := float64(position) / float64(len(allSongIDs)-1)
+			if math.IsNaN(normalizedPos) {
+				normalizedPos = 0.5
+			}
+
+			// 新しい曲ほど大きく表示
+			pointSize := 2 + int(normalizedPos*2)
+
+			// Draw a point (square)
 			for py := y - pointSize; py <= y+pointSize; py++ {
 				for px := x - pointSize; px <= x+pointSize; px++ {
 					if px >= 0 && px < width && py >= 0 && py < height {
@@ -678,6 +727,40 @@ func generateRandomFrames() {
 			}
 		}
 
+		// Draw color legend for song age
+		legendX := width - margin - 120
+		legendY := height - margin - 100
+		legendWidth := 100
+		legendHeight := 20
+
+		// Draw legend title
+		drawText(img, "Song Age:", legendX, legendY-10, color.RGBA{0, 0, 0, 255})
+
+		// Draw gradient bar
+		for x := 0; x < legendWidth; x++ {
+			normalizedPos := float64(x) / float64(legendWidth-1)
+			// Use same color logic as getSongColor
+			r := 0.4 + normalizedPos*0.6
+			g := 0.4 - normalizedPos*0.25
+			b := 1.0 - normalizedPos*0.7
+			opacity := 0.6 + normalizedPos*0.4
+
+			pointColor := color.RGBA{
+				R: uint8(r * 255),
+				G: uint8(g * 255),
+				B: uint8(b * 255),
+				A: uint8(opacity * 255),
+			}
+
+			for y := 0; y < legendHeight; y++ {
+				img.Set(legendX+x, legendY+y, pointColor)
+			}
+		}
+
+		// Draw legend labels
+		drawText(img, "Old", legendX, legendY+legendHeight+10, color.RGBA{0, 0, 200, 255})
+		drawText(img, "New", legendX+legendWidth-24, legendY+legendHeight+10, color.RGBA{200, 0, 0, 255})
+
 		// Draw data points
 		scale := float64(width - 2*margin)
 
@@ -693,8 +776,23 @@ func generateRandomFrames() {
 			// Get color based on song ID - 一貫した色付け
 			pointColor := getSongColor(genreInfo.ID, allSongIDs, len(allSongIDs))
 
-			// Draw a simple point (5x5 square)
-			pointSize := 2
+			// 古い曲と新しい曲でサイズを変える
+			position := 0
+			for i, id := range allSongIDs {
+				if id == genreInfo.ID {
+					position = i
+					break
+				}
+			}
+			normalizedPos := float64(position) / float64(len(allSongIDs)-1)
+			if math.IsNaN(normalizedPos) {
+				normalizedPos = 0.5
+			}
+
+			// 新しい曲ほど大きく表示
+			pointSize := 2 + int(normalizedPos*2)
+
+			// Draw a point (square)
 			for py := y - pointSize; py <= y+pointSize; py++ {
 				for px := x - pointSize; px <= x+pointSize; px++ {
 					if px >= 0 && px < width && py >= 0 && py < height {

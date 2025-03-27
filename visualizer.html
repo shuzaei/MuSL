@@ -913,12 +913,26 @@
                                 const normalizedId = (id - minId) / (maxId - minId || 1);
 
                                 // Create color gradient from blue (older) to red (newer)
+                                // 古い曲（青）から新しい曲（赤）へのグラデーション
                                 const r = Math.floor(normalizedId * 255);
+                                const g = Math.floor(100 - normalizedId * 60); // 少し減少させる
                                 const b = Math.floor((1 - normalizedId) * 255);
-                                return `rgba(${r}, 100, ${b}, 0.7)`;
+
+                                // 透明度も調整（新しい曲ほど濃く）
+                                const alpha = 0.5 + normalizedId * 0.5;
+                                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
                             },
-                            pointRadius: 5,
-                            pointHoverRadius: 7
+                            pointRadius: function (context) {
+                                // 新しい曲ほど大きく表示
+                                const index = context.dataIndex;
+                                const id = genrePoints[index].id;
+                                const maxId = Math.max(...genrePoints.map(p => p.id));
+                                const minId = Math.min(...genrePoints.map(p => p.id));
+                                const normalizedId = (id - minId) / (maxId - minId || 1);
+
+                                return 4 + normalizedId * 3; // 4〜7のサイズ
+                            },
+                            pointHoverRadius: 8
                         }
                     ]
                 },
@@ -933,7 +947,45 @@
                             callbacks: {
                                 label: function (context) {
                                     const point = genrePoints[context.dataIndex];
-                                    return `Song ID: ${point.id}, Genre: [${point.x.toFixed(2)}, ${point.y.toFixed(2)}]`;
+                                    const maxId = Math.max(...genrePoints.map(p => p.id));
+                                    const minId = Math.min(...genrePoints.map(p => p.id));
+
+                                    // 曲の新しさを計算（0〜100%）
+                                    const agePercent = Math.round(((point.id - minId) / (maxId - minId || 1)) * 100);
+
+                                    return [
+                                        `曲ID: ${point.id}`,
+                                        `ジャンル: [${point.x.toFixed(2)}, ${point.y.toFixed(2)}]`,
+                                        `新しさ: ${agePercent}%`
+                                    ];
+                                }
+                            },
+                            legend: {
+                                display: true,
+                                labels: {
+                                    generateLabels: function (chart) {
+                                        // デフォルトラベルを取得
+                                        const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+
+                                        // 色の凡例を追加
+                                        labels.push({
+                                            text: '古い曲',
+                                            fillStyle: 'rgba(0, 100, 255, 0.7)',
+                                            strokeStyle: 'rgba(0, 100, 255, 1)',
+                                            lineWidth: 1,
+                                            hidden: false
+                                        });
+
+                                        labels.push({
+                                            text: '新しい曲',
+                                            fillStyle: 'rgba(255, 40, 40, 0.9)',
+                                            strokeStyle: 'rgba(255, 40, 40, 1)',
+                                            lineWidth: 1,
+                                            hidden: false
+                                        });
+
+                                        return labels;
+                                    }
                                 }
                             }
                         }

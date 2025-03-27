@@ -10,7 +10,9 @@ import (
 	"image/gif"
 	"image/png"
 	"io/ioutil"
+	"math"
 	"math/rand"
+	"math/sort"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -232,6 +234,9 @@ func generateGenreFrames(summaries []PublicSummery, frameDir string) {
 		numDimensions = 2 // 2次元の場合
 	)
 
+	// 全曲のIDを取得して一貫した色付けのために使用
+	allSongIds := getAllSongIDs(summaries)
+
 	// フレーム生成
 	for i, summary := range summaries {
 		// 進捗状況の更新
@@ -246,13 +251,47 @@ func generateGenreFrames(summaries []PublicSummery, frameDir string) {
 		// 背景を白で塗りつぶす
 		draw.Draw(img, img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
 
+		// 枠線を描画
+		drawBorder(img, 5, color.RGBA{200, 200, 200, 255})
+
+		// 色の凡例を描画
+		legendX := width - 150
+		legendY := height - 80
+		legendWidth := 120
+		legendHeight := 20
+
+		// 凡例タイトル
+		drawSimpleText(img, "曲の古さ:", legendX, legendY-15, color.RGBA{0, 0, 0, 255})
+
+		// グラデーションバー
+		for x := 0; x < legendWidth; x++ {
+			normalizedPos := float64(x) / float64(legendWidth-1)
+			// 古い曲（青）から新しい曲（赤）へのグラデーション
+			r := uint8((0.4 + normalizedPos*0.6) * 255)
+			g := uint8((0.4 - normalizedPos*0.25) * 255)
+			b := uint8((1.0 - normalizedPos*0.7) * 255)
+			a := uint8((0.6 + normalizedPos*0.4) * 255)
+
+			legendColor := color.RGBA{r, g, b, a}
+
+			for y := 0; y < legendHeight; y++ {
+				if legendX+x >= 0 && legendX+x < width && legendY+y >= 0 && legendY+y < height {
+					img.Set(legendX+x, legendY+y, legendColor)
+				}
+			}
+		}
+
+		// 凡例ラベル
+		drawSimpleText(img, "古い", legendX, legendY+legendHeight+15, color.RGBA{0, 0, 200, 255})
+		drawSimpleText(img, "新しい", legendX+legendWidth-50, legendY+legendHeight+15, color.RGBA{200, 0, 0, 255})
+
 		// ジャンルポイントをプロット
 		if len(summary.AllGenres) > 0 {
 			for _, genreInfo := range summary.AllGenres {
 				if len(genreInfo.Genre) >= numDimensions {
 					// ジャンルの最初の2次元を使用して座標を計算
-					x := int(genreInfo.Genre[0]*float64(width-20)) + 10
-					y := int(genreInfo.Genre[1]*float64(height-20)) + 10
+					x := int(genreInfo.Genre[0]*float64(width-40)) + 20
+					y := int(genreInfo.Genre[1]*float64(height-40)) + 20
 
 					// 描画範囲内に収まるように調整
 					if x < 0 {
@@ -267,20 +306,21 @@ func generateGenreFrames(summaries []PublicSummery, frameDir string) {
 						y = height - 1
 					}
 
-					// IDをハッシュ化して一貫した色を生成
-					r := uint8((genreInfo.ID * 123) % 255)
-					g := uint8((genreInfo.ID * 45) % 255)
-					b := uint8((genreInfo.ID * 67) % 255)
+					// 曲の古さに基づいて色を生成
+					pointColor := getSongColorByAge(genreInfo.ID, allSongIds)
 
-					// 点を描画 (3x3ピクセルの円形)
-					pointColor := color.RGBA{r, g, b, 255}
-					drawPoint(img, x, y, 3, pointColor)
+					// 曲の古さに基づいてサイズを決定（新しい曲ほど大きく）
+					pointSize := getSongSizeByAge(genreInfo.ID, allSongIds)
+
+					// 点を描画
+					drawPoint(img, x, y, pointSize, pointColor)
 				}
 			}
 		}
 
-		// イテレーション番号をレンダリング
-		// 実際の実装では、テキスト描画ライブラリを使用するとよい
+		// イテレーション番号を表示
+		iterNumStr := fmt.Sprintf("Iteration: %d", i)
+		drawSimpleText(img, iterNumStr, 20, 20, color.RGBA{0, 0, 0, 255})
 
 		// ファイル名の生成とPNG形式で保存
 		filename := filepath.Join(frameDir, fmt.Sprintf("frame_%04d.png", i))
@@ -309,11 +349,159 @@ func drawPoint(img *image.RGBA, x, y, size int, c color.RGBA) {
 			if dx*dx+dy*dy <= size*size {
 				px, py := x+dx, y+dy
 				if px >= 0 && px < img.Bounds().Max.X && py >= 0 && py < img.Bounds().Max.Y {
-					img.Set(px, py, c)
+					// 中心ほど濃く（グラデーション）
+					dist := math.Sqrt(float64(dx*dx+dy*dy)) / float64(size)
+					alpha := uint8(float64(c.A) * (1.0 - 0.7*dist))
+					if alpha > 0 {
+						blended := color.RGBA{c.R, c.G, c.B, alpha}
+						img.Set(px, py, blended)
+					}
 				}
 			}
 		}
 	}
+}
+
+// 枠線を描画する関数
+func drawBorder(img *image.RGBA, thickness int, c color.RGBA) {
+	bounds := img.Bounds()
+	w, h := bounds.Max.X, bounds.Max.Y
+
+	// 上辺
+	for y := 0; y < thickness; y++ {
+		for x := 0; x < w; x++ {
+			img.Set(x, y, c)
+		}
+	}
+
+	// 下辺
+	for y := h - thickness; y < h; y++ {
+		for x := 0; x < w; x++ {
+			img.Set(x, y, c)
+		}
+	}
+
+	// 左辺
+	for x := 0; x < thickness; x++ {
+		for y := 0; y < h; y++ {
+			img.Set(x, y, c)
+		}
+	}
+
+	// 右辺
+	for x := w - thickness; x < w; x++ {
+		for y := 0; y < h; y++ {
+			img.Set(x, y, c)
+		}
+	}
+}
+
+// シンプルなテキスト描画関数
+func drawSimpleText(img *image.RGBA, text string, x, y int, c color.RGBA) {
+	// 非常に簡易的な実装 - 実際のアプリケーションではフォントレンダリングライブラリを使用
+	for i, char := range text {
+		drawSimpleChar(img, char, x+i*8, y, c)
+	}
+}
+
+// シンプルな文字描画関数
+func drawSimpleChar(img *image.RGBA, char rune, x, y int, c color.RGBA) {
+	// 基本的な文字の形状を描画するだけの非常に簡易的な実装
+	bounds := img.Bounds()
+	if x < 0 || x >= bounds.Max.X || y < 0 || y >= bounds.Max.Y {
+		return
+	}
+
+	// 文字の形をドットで表現
+	switch char {
+	case 'I', 'i', 'l', '1':
+		for dy := -5; dy <= 2; dy++ {
+			img.Set(x, y+dy, c)
+		}
+	case 'T', 't':
+		for dx := -2; dx <= 2; dx++ {
+			img.Set(x+dx, y-5, c)
+		}
+		for dy := -4; dy <= 2; dy++ {
+			img.Set(x, y+dy, c)
+		}
+	case ':':
+		img.Set(x, y-3, c)
+		img.Set(x, y, c)
+	default:
+		// その他の文字は単純な点で表現
+		img.Set(x, y, c)
+	}
+}
+
+// 曲の古さに基づいて色を決定する関数
+func getSongColorByAge(songID int, allIDs []int) color.RGBA {
+	// IDリスト内での位置を探す
+	position := 0
+	for i, id := range allIDs {
+		if id == songID {
+			position = i
+			break
+		}
+	}
+
+	// 位置を0〜1の範囲に正規化
+	normalizedPos := float64(position) / float64(len(allIDs)-1)
+	if math.IsNaN(normalizedPos) {
+		normalizedPos = 0.5 // 曲が1つしかない場合のフォールバック
+	}
+
+	// 古い曲（青）から新しい曲（赤）へのグラデーション
+	r := uint8((0.4 + normalizedPos*0.6) * 255)
+	g := uint8((0.4 - normalizedPos*0.25) * 255)
+	b := uint8((1.0 - normalizedPos*0.7) * 255)
+	a := uint8((0.6 + normalizedPos*0.4) * 255)
+
+	return color.RGBA{r, g, b, a}
+}
+
+// 曲の古さに基づいてサイズを決定する関数
+func getSongSizeByAge(songID int, allIDs []int) int {
+	// IDリスト内での位置を探す
+	position := 0
+	for i, id := range allIDs {
+		if id == songID {
+			position = i
+			break
+		}
+	}
+
+	// 位置を0〜1の範囲に正規化
+	normalizedPos := float64(position) / float64(len(allIDs)-1)
+	if math.IsNaN(normalizedPos) {
+		normalizedPos = 0.5 // 曲が1つしかない場合のフォールバック
+	}
+
+	// 新しい曲ほど大きく（3〜6ピクセル）
+	return 3 + int(normalizedPos*3)
+}
+
+// 全曲のIDを取得する関数
+func getAllSongIDs(summaries []PublicSummery) []int {
+	idMap := make(map[int]bool)
+
+	// 全てのサマリーから曲IDを収集
+	for _, summary := range summaries {
+		for _, genreInfo := range summary.AllGenres {
+			idMap[genreInfo.ID] = true
+		}
+	}
+
+	// マップをスライスに変換
+	ids := make([]int, 0, len(idMap))
+	for id := range idMap {
+		ids = append(ids, id)
+	}
+
+	// IDを昇順にソート（古い順）
+	sort.Ints(ids)
+
+	return ids
 }
 
 // GIF作成ハンドラ
@@ -539,7 +727,7 @@ func randomVisualizationHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ランダムデータ生成関数
+// ランダムなジャンルフレームを生成する関数
 func generateRandomFrames(initialSongs, numFrames int, distType string) error {
 	// ランダムデータ用のディレクトリ作成
 	frameDir := "random_frames"
@@ -552,13 +740,12 @@ func generateRandomFrames(initialSongs, numFrames int, distType string) error {
 		height = 600
 	)
 
-	// 全フレームで使用する曲のIDとジャンル情報
-	maxSongs := initialSongs * 3 // 最大曲数（徐々に増加させる）
-	songIDs := make([]int, maxSongs)
-	songGenres := make([][]float64, maxSongs)
+	// 分布タイプに基づいて点を生成
+	songIDs := make([]int, initialSongs)
+	songGenres := make([][]float64, initialSongs)
 
-	// 全曲に一貫したIDと固定のジャンル位置を割り当て
-	for i := 0; i < maxSongs; i++ {
+	// 各曲に一貫したIDと初期ジャンルを割り当て
+	for i := 0; i < initialSongs; i++ {
 		songIDs[i] = i + 1
 
 		var x, y float64
@@ -601,67 +788,140 @@ func generateRandomFrames(initialSongs, numFrames int, distType string) error {
 	}
 
 	// フレーム生成
-	// 各フレームで表示する曲数を徐々に増やす
-	for frame := 0; frame < numFrames; frame++ {
+	for i := 0; i < numFrames; i++ {
 		// 進捗状況の更新
 		if numFrames > 0 {
-			currentProgress.Progress = 0.3 + 0.4*float64(frame)/float64(numFrames)
-			currentProgress.Message = fmt.Sprintf("ランダムデータフレーム生成中... (%d/%d)", frame+1, numFrames)
+			currentProgress.Progress = 0.3 + 0.6*float64(i)/float64(numFrames)
+			currentProgress.Message = fmt.Sprintf("ランダムフレーム生成中... (%d/%d)", i+1, numFrames)
 		}
 
-		// 新しい画像を作成
+		// 各イテレーションの曲を準備
+		activeSongs := make([]int, 0)
+		activeGenres := make([][]float64, 0)
+
+		// 活性化する曲を選択
+		activationCount := initialSongs / 2
+		if i < 10 {
+			// 初期フレームは少数の曲から始める
+			activationCount = int(float64(initialSongs) * float64(i+1) / 20.0)
+		}
+
+		// 少なくとも1曲は表示
+		if activationCount < 1 {
+			activationCount = 1
+		}
+
+		// 曲をシャッフル
+		indices := rand.Perm(initialSongs)
+		for j := 0; j < activationCount && j < len(indices); j++ {
+			idx := indices[j]
+			activeSongs = append(activeSongs, songIDs[idx])
+			activeGenres = append(activeGenres, songGenres[idx])
+		}
+
+		// フレーム画像を生成
 		img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 		// 背景を白で塗りつぶす
 		draw.Draw(img, img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
 
-		// このフレームで表示する曲数を計算（徐々に増加）
-		currentSongCount := initialSongs
-		if frame > 0 {
-			// 最初のフレームからinitialSongs曲を表示し、その後徐々に増加
-			additionalSongs := (maxSongs - initialSongs) * frame / (numFrames - 1)
-			currentSongCount = initialSongs + additionalSongs
-			if currentSongCount > maxSongs {
-				currentSongCount = maxSongs
+		// 枠線を描画
+		drawBorder(img, 5, color.RGBA{200, 200, 200, 255})
+
+		// 色の凡例を描画
+		legendX := width - 150
+		legendY := height - 80
+		legendWidth := 120
+		legendHeight := 20
+
+		// 凡例タイトル
+		drawSimpleText(img, "曲の古さ:", legendX, legendY-15, color.RGBA{0, 0, 0, 255})
+
+		// グラデーションバー
+		for x := 0; x < legendWidth; x++ {
+			normalizedPos := float64(x) / float64(legendWidth-1)
+			// 古い曲（青）から新しい曲（赤）へのグラデーション
+			r := uint8((0.4 + normalizedPos*0.6) * 255)
+			g := uint8((0.4 - normalizedPos*0.25) * 255)
+			b := uint8((1.0 - normalizedPos*0.7) * 255)
+			a := uint8((0.6 + normalizedPos*0.4) * 255)
+
+			legendColor := color.RGBA{r, g, b, a}
+
+			for y := 0; y < legendHeight; y++ {
+				if legendX+x >= 0 && legendX+x < width && legendY+y >= 0 && legendY+y < height {
+					img.Set(legendX+x, legendY+y, legendColor)
+				}
 			}
 		}
 
-		// 各曲のジャンルポイントをプロット（固定位置）
-		for i := 0; i < currentSongCount; i++ {
-			genre := songGenres[i]
-			id := songIDs[i]
+		// 凡例ラベル
+		drawSimpleText(img, "古い", legendX, legendY+legendHeight+15, color.RGBA{0, 0, 200, 255})
+		drawSimpleText(img, "新しい", legendX+legendWidth-50, legendY+legendHeight+15, color.RGBA{200, 0, 0, 255})
 
-			x := int(genre[0]*float64(width-20)) + 10
-			y := int(genre[1]*float64(height-20)) + 10
+		// ジャンル点をプロット
+		for j, id := range activeSongs {
+			if j < len(activeGenres) {
+				genre := activeGenres[j]
+				if len(genre) >= 2 {
+					// 座標計算
+					x := int(genre[0]*float64(width-40)) + 20
+					y := int(genre[1]*float64(height-40)) + 20
 
-			// IDをハッシュ化して一貫した色を生成
-			r := uint8((id * 123) % 255)
-			g := uint8((id * 45) % 255)
-			b := uint8((id * 67) % 255)
+					// 範囲チェック
+					if x < 0 {
+						x = 0
+					} else if x >= width {
+						x = width - 1
+					}
 
-			// 点を描画
-			pointColor := color.RGBA{r, g, b, 255}
-			drawPoint(img, x, y, 3, pointColor)
+					if y < 0 {
+						y = 0
+					} else if y >= height {
+						y = height - 1
+					}
+
+					// 曲の古さに基づいて色を生成
+					pointColor := getSongColorByAge(id, songIDs)
+
+					// 曲の古さに基づいてサイズを決定（新しい曲ほど大きく）
+					pointSize := getSongSizeByAge(id, songIDs)
+
+					// 点を描画
+					drawPoint(img, x, y, pointSize, pointColor)
+				}
+			}
 		}
 
-		// フレーム上部にフレーム番号と曲数を表示
-		// 実際のテキスト描画には別のライブラリが必要なため、ここではコメントのみ
-		// drawText(img, 10, 20, fmt.Sprintf("Frame: %d, Songs: %d", frame, currentSongCount))
+		// フレーム情報の描画
+		iterText := fmt.Sprintf("Iteration: %d (RANDOM - %s)", i, distType)
+		drawSimpleText(img, iterText, 20, 20, color.RGBA{0, 0, 0, 255})
 
-		// ファイル名の生成とPNG形式で保存
-		filename := filepath.Join(frameDir, fmt.Sprintf("frame_%04d.png", frame))
+		// アクティブな曲数の表示
+		songCountText := fmt.Sprintf("Active Songs: %d", len(activeSongs))
+		drawSimpleText(img, songCountText, 20, 40, color.RGBA{0, 0, 0, 255})
+
+		// PNG保存
+		filename := filepath.Join(frameDir, fmt.Sprintf("frame_%04d.png", i))
 		file, err := os.Create(filename)
 		if err != nil {
-			return err
+			return fmt.Errorf("フレーム保存エラー: %w", err)
 		}
 
-		// PNGとして保存
 		if err := png.Encode(file, img); err != nil {
 			file.Close()
-			return err
+			return fmt.Errorf("PNG作成エラー: %w", err)
 		}
 
 		file.Close()
+	}
+
+	currentProgress.Progress = 0.9
+	currentProgress.Message = "GIF作成中..."
+
+	// GIF作成
+	if err := createGIFFromFrames("random_frames", "random_evolution.gif", 10); err != nil {
+		return fmt.Errorf("GIF作成エラー: %w", err)
 	}
 
 	return nil
