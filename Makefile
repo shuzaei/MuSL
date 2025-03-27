@@ -1,4 +1,4 @@
-.PHONY: all run build clean visualizer random
+.PHONY: all run build clean visualizer random gui
 
 # デフォルトターゲット
 all: build
@@ -14,6 +14,10 @@ run: build
 # ビジュアライザーの実行
 visualizer:
 	go run cmd/visualizer/main.go
+
+# GUIビジュアライザーの実行
+gui:
+	./run_gui.sh
 
 # ランダムデータのビジュアライゼーション
 random:

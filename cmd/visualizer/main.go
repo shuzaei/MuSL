@@ -529,8 +529,8 @@ func generateRandomSummaries(count int, startingSongCount int) []PublicSummery {
 
 		// 1. アクティブな曲の一部を削除（完全ランダムに）
 		if i > 0 && len(activeSongs) > 0 {
-			// アクティブな曲の5〜15%をランダムに削除
-			removalRate := 0.05 + rand.Float64()*0.1
+			// アクティブな曲の1〜2%をランダムに削除
+			removalRate := 0.01 + rand.Float64()*0.01
 			removeCount := int(float64(len(activeSongs)) * removalRate)
 
 			// IDのリストを取得
@@ -539,9 +539,17 @@ func generateRandomSummaries(count int, startingSongCount int) []PublicSummery {
 				songIDs = append(songIDs, id)
 			}
 
-			// 完全にランダムに削除（IDによるバイアスなし）
-			rand.Shuffle(len(songIDs), func(i, j int) {
-				songIDs[i], songIDs[j] = songIDs[j], songIDs[i]
+			// ID によるバイアスとランダムを重み付けして曲をシャッフル
+			// maxSongs-ID * 0.5 + rand.Float64() * maxSongs * 0.5
+			// 最初にこの値を計算しておく
+			weights := make([]float64, len(songIDs))
+			for i, id := range songIDs {
+				weights[i] = float64(maxSongs-id)*0.5 + rand.Float64()*float64(maxSongs)*0.5
+			}
+
+			// 重み付けされた曲をシャッフル
+			sort.Slice(songIDs, func(i, j int) bool {
+				return weights[i] < weights[j]
 			})
 
 			// ランダムに選んだ曲を削除
