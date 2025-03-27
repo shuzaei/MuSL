@@ -31,46 +31,48 @@ type Agent struct {
 
 func MakeNewAgent(
 	id int,
-	role []bool, // -------------------- Gene
-	energy float64, // ----------------- 動的に変化
-	default_energy Const64, // --------- 実験定数
-	elimination_threshold Const64, // -- 実験定数
-	reproduction_probability float64, // Gene
+	role []bool, // ---------------------- Gene
+	energy float64, // ------------------- 動的に変化
+	default_energy Const64, // ----------- 実験定数
+	elimination_threshold Const64, // ---- 実験定数
+	reproduction_probability float64, // - Gene
 
 	// creator
-	innovation_rate float64, // -------- Gene
-	memory_c []*Song, // --------------- 動的に変化
-	creation_probability float64, // --- Gene
-	creation_cost Const64, // ---------- 実験定数
+	innovation_rate float64, // ---------- Gene
+	memory_c []*Song, // ----------------- 動的に変化
+	creation_probability float64, // ----- Gene
+	creation_cost Const64, // ------------ 実験定数
 
 	// listener
-	novelty_preference float64, // ----- Gene
-	memory_l []*Song, //---------------- 動的に変化
-	incoming_songs []*Song, // --------- 動的に変化
-	song_events []*Event, // ----------- 動的に変化
-	listening_probability float64, // -- Gene
-	evaluation_cost Const64, // -------- 実験定数
+	novelty_preference float64, // ------- Gene
+	memory_l []*Song, //------------------ 動的に変化
+	incoming_songs []*Song, // ----------- 動的に変化
+	song_events []*Event, // ------------- 動的に変化
+	listening_probability float64, // ---- Gene
+	evaluation_cost Const64, // ---------- 実験定数
 
 	// organizer
-	major_probability Const64, // ------ 実験定数
-	created_events []*Event, // -------- 動的に変化
-	event_probability float64, // ------ Gene
-	organization_cost Const64, // ------ 実験定数
-	organization_reward Const64, // ---- 実験定数
+	major_probability Const64, // -------- 実験定数
+	created_events []*Event, // ---------- 動的に変化
+	event_probability float64, // -------- Gene
+	organization_cost Const64, // -------- 実験定数
+	organization_reward Const64, // ------ 実験定数
 
 	// イベント生成用のパラメータ
 	// メジャーイベント
-	major_listener_ratio Const64, // --- 実験定数
-	major_creator_ratio Const64, // ---- 実験定数
-	major_song_ratio Const64, // ------- 実験定数
-	major_winner_ratio Const64, // ----- 実験定数
-	major_reward_ratio Const64, // ----- 実験定数
+	major_listener_ratio Const64, // ----- 実験定数
+	major_creator_ratio Const64, // ------ 実験定数
+	major_song_ratio Const64, // --------- 実験定数
+	major_winner_ratio Const64, // ------- 実験定数
+	major_reward_ratio Const64, // ------- 実験定数
+	major_recommendation_ratio Const64, // 実験定数
 
 	// マイナーイベント
-	minor_listener_ratio Const64, // --- 実験定数
-	minor_creator_ratio Const64, // ---- 実験定数
-	minor_song_ratio Const64, // ------- 実験定数
-	minor_reward_ratio Const64, // ----- 実験定数
+	minor_listener_ratio Const64, // ----- 実験定数
+	minor_creator_ratio Const64, // ------ 実験定数
+	minor_song_ratio Const64, // --------- 実験定数
+	minor_reward_ratio Const64, // ------- 実験定数
+	minor_recommendation_ratio Const64, // 実験定数
 ) *Agent {
 	return &Agent{
 		id:                       id,
@@ -82,8 +84,8 @@ func MakeNewAgent(
 		creator:                  &Creator{innovation_rate, memory_c, creation_probability, creation_cost},
 		listener:                 &Listener{novelty_preference, memory_l, incoming_songs, song_events, listening_probability, evaluation_cost},
 		organizer: &Organizer{major_probability, created_events, event_probability, organization_cost, organization_reward,
-			major_listener_ratio, major_creator_ratio, major_song_ratio, major_winner_ratio, major_reward_ratio,
-			minor_listener_ratio, minor_creator_ratio, minor_song_ratio, minor_reward_ratio,
+			major_listener_ratio, major_creator_ratio, major_song_ratio, major_winner_ratio, major_reward_ratio, major_recommendation_ratio,
+			minor_listener_ratio, minor_creator_ratio, minor_song_ratio, minor_reward_ratio, minor_recommendation_ratio,
 		},
 	}
 }
@@ -125,12 +127,14 @@ func CopyAgent(a *Agent) *Agent {
 		a.organizer.major_song_ratio,
 		a.organizer.major_winner_ratio,
 		a.organizer.major_reward_ratio,
+		a.organizer.major_recommendation_ratio,
 
 		// マイナーイベント
 		a.organizer.minor_listener_ratio,
 		a.organizer.minor_creator_ratio,
 		a.organizer.minor_song_ratio,
 		a.organizer.minor_reward_ratio,
+		a.organizer.minor_recommendation_ratio,
 	)
 }
 
@@ -180,12 +184,14 @@ func MakeRandomAgentFromParams(
 		default_params.organizer.major_song_ratio,
 		default_params.organizer.major_winner_ratio,
 		default_params.organizer.major_reward_ratio,
+		default_params.organizer.major_recommendation_ratio,
 
 		// マイナーイベント
 		default_params.organizer.minor_listener_ratio,
 		default_params.organizer.minor_creator_ratio,
 		default_params.organizer.minor_song_ratio,
 		default_params.organizer.minor_reward_ratio,
+		default_params.organizer.minor_recommendation_ratio,
 	)
 }
 

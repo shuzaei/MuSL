@@ -68,12 +68,14 @@ func main() {
 		0.1, // [*] major_song_ratio
 		0.5, // [*] major_winner_ratio
 		0.5, // [*] major_reward_ratio
+		0.1, // [*] major_recommendation_ratio
 
 		// マイナーイベント
 		0.1, // [*] minor_listener_ratio
 		0.1, // [*] minor_creator_ratio
 		0.5, // [*] minor_song_ratio
 		0.5, // [*] minor_reward_ratio
+		0.1, // [*] minor_recommendation_ratio
 	)
 
 	sim := MuSL.MakeNewSimulation(n_agents, n_iter, ga_params, default_agent_params)

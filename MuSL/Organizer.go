@@ -22,17 +22,19 @@ type Organizer struct {
 
 	// イベント生成用のパラメータ
 	// メジャーイベント
-	major_listener_ratio Const64
-	major_creator_ratio  Const64
-	major_song_ratio     Const64
-	major_winner_ratio   Const64 // 上位何%に報酬を与えるか
-	major_reward_ratio   Const64 // 上位に与える報酬の割合
+	major_listener_ratio       Const64
+	major_creator_ratio        Const64
+	major_song_ratio           Const64
+	major_winner_ratio         Const64 // 上位何%に報酬を与えるか
+	major_reward_ratio         Const64 // 上位に与える報酬の割合
+	major_recommendation_ratio Const64 // リスナーに曲をおすすめする確率
 
 	// マイナーイベント
-	minor_listener_ratio Const64
-	minor_creator_ratio  Const64
-	minor_song_ratio     Const64
-	minor_reward_ratio   Const64 // そのまま報酬を与える割合
+	minor_listener_ratio       Const64
+	minor_creator_ratio        Const64
+	minor_song_ratio           Const64
+	minor_reward_ratio         Const64 // そのまま報酬を与える割合
+	minor_recommendation_ratio Const64 // リスナーに曲をおすすめする確率
 }
 
 func (o *Organizer) Organize(agents *[]*Agent, me *Agent, summery *Summery) {
@@ -189,10 +191,27 @@ func (o *Organizer) Organize(agents *[]*Agent, me *Agent, summery *Summery) {
 			event.evaluation_reward[song] = 0.0
 		}
 
+		// 評価は次のイテレーションまでに集められるため、
+		// キューに追加して次のイテレーションを待つ
+
+		for _, listener := range listener_pool {
+			for _, song := range creator_pool {
+				recommendation_ratio := 0.0
+				if event_type == "major" {
+					recommendation_ratio = float64(o.major_recommendation_ratio)
+				} else {
+					recommendation_ratio = float64(o.minor_recommendation_ratio)
+				}
+
+				if rand.Float64() < recommendation_ratio {
+					listener.listener.incoming_songs = append(listener.listener.incoming_songs, song)
+				}
+			}
+		}
+
 		// 集計 (III)
 		summery.num_event_all++
 		summery.num_event_this++
 
-		// 評価は次のイテレーションまでに集められる
 	}
 }
