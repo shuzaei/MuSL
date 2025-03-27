@@ -90,6 +90,58 @@ func MakeNewAgent(
 	}
 }
 
+// 実験定数の部分だけをコピーし、その他を初期化する
+// MakeNewAgentFromAgentはエージェントの実験定数だけをコピーし、遺伝子や動的に変化する値は初期化する
+func MakeNewAgentFromAgent(a *Agent) *Agent {
+	return MakeNewAgent(
+		-1,                          // id
+		[]bool{false, false, false}, // Gene (role)
+		float64(a.default_energy),   // 動的に変化
+		a.default_energy,            // 実験定数
+		a.elimination_threshold,     // 実験定数
+		-1,                          // Gene (reproduction_probability)
+
+		// creator
+		-1,                      // Gene (innovation_rate)
+		make([]*Song, 0),        // 動的に変化
+		-1,                      // Gene (creation_probability)
+		a.creator.creation_cost, // 実験定数
+
+		// listener
+		-1,                         // Gene (novelty_preference)
+		make([]*Song, 0),           // 動的に変化
+		make([]*Song, 0),           // 動的に変化
+		make([]*Event, 0),          // 動的に変化
+		-1,                         // Gene (listening_probability)
+		a.listener.evaluation_cost, // 実験定数
+
+		// organizer
+		a.organizer.major_probability,   // 実験定数
+		make([]*Event, 0),               // 動的に変化
+		-1,                              // Gene (event_probability)
+		a.organizer.organization_cost,   // 実験定数
+		a.organizer.organization_reward, // 実験定数
+
+		// イベント生成用のパラメータ
+		// メジャーイベント
+		a.organizer.major_listener_ratio,       // 実験定数
+		a.organizer.major_creator_ratio,        // 実験定数
+		a.organizer.major_song_ratio,           // 実験定数
+		a.organizer.major_winner_ratio,         // 実験定数
+		a.organizer.major_reward_ratio,         // 実験定数
+		a.organizer.major_recommendation_ratio, // 実験定数
+
+		// マイナーイベント
+		a.organizer.minor_listener_ratio,       // 実験定数
+		a.organizer.minor_creator_ratio,        // 実験定数
+		a.organizer.minor_song_ratio,           // 実験定数
+		a.organizer.minor_reward_ratio,         // 実験定数
+		a.organizer.minor_recommendation_ratio, // 実験定数
+	)
+}
+
+// Deprecated: CopyAgentは非推奨です。MakeNewAgentFromAgentを使用してください。
+// CopyAgentはエージェントの完全なディープコピーを作成します
 func CopyAgent(a *Agent) *Agent {
 	// roleスライスをディープコピーする
 	roleCopy := make([]bool, len(a.role))
@@ -272,7 +324,7 @@ func (a *Agent) Reproduce(agents, new_born_pool *[]*Agent, gaParams *GAParams, d
 		}
 
 		spouse := spouse_candidates[rand.IntN(len(spouse_candidates))]
-		child, err := ReproduceGA(a, spouse, gaParams, default_agent_params, CopyAgent)
+		child, err := ReproduceGA(a, spouse, gaParams, default_agent_params, MakeNewAgentFromAgent)
 		if err == nil {
 			child.id = GetNewID()
 			*new_born_pool = append(*new_born_pool, child)

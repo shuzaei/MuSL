@@ -112,6 +112,7 @@ func MakeNewSummeryFromSummery(s *Summery) *Summery {
 	}
 }
 
+// Deprecated: CopySummeryは非推奨です。MakeNewSummeryFromSummeryを使用してください。
 func CopySummery(s *Summery) *Summery {
 	// ジャンル情報のディープコピー
 	genresCopy := make([]GenreInfo, len(s.all_genres))
